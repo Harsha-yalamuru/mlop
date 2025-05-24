@@ -1,0 +1,178 @@
+1st prog
+git init 
+git add hello_world.py 
+git commit -m "Initial commit with hello world python script" 
+echo "venv/" >> .gitignore 
+echo "*.pyc" >> .gitignore 
+echo "data/*.csv" >> .gitignore 
+git add .gitignore 
+git commit -m "Add .gitignore" ###create a repo on GitHub and u can also follow instruction for branch there
+  #git push https://github.com/Harsha-yalamuru/mlop(push doesn't work here if branch not created)
+git branch -M main
+git remote add origin https://github.com/Harsha-yalamuru/mlop.git
+git push -u origin main
+
+2nd prog
+
+pip install dvc
+git init 
+dvc init
+#add iris_data.csv to folder from GitHub itself
+dvc add iris_data.csv 
+git add iris_data.csv.dvc .gitignore .dvc/ 
+git commit -m "Track dataset with DVC" 
+git push origin main
+
+3rd prog
+#create train_model.py
+from sklearn.datasets import load_iris 
+from sklearn.linear_model import LogisticRegression 
+X, y = load_iris(return_X_y=True) 
+clf = LogisticRegression(max_iter=200) 
+clf.fit(X, y) 
+print("Model trained") 
+in bash
+git add train_model.py 
+git commit -m "Add model training script" 
+git push origin main
+
+4th prog
+#create predict_apui.py
+##create reqwuiremetns.txt and this pip install flask scikit-learn numpy 
+from flask import Flask, request, jsonify 
+import numpy as np 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.datasets import load_iris 
+app = Flask(__name__) 
+X, y = load_iris(return_X_y=True) 
+model = LogisticRegression(max_iter=200).fit(X, y) 
+@app.route('/predict', methods=['POST']) 
+def predict(): 
+    data = request.json['features'] 
+    prediction = model.predict([data]) 
+    return jsonify({'prediction': int(prediction[0])}) 
+if __name__ == '__main__': 
+    app.run(host='0.0.0.0', port=5000, debug=True)
+IN ANOTHER TERMINAL PUT THIS TO MAKE A CLIENT SERVER 
+#curl -X POST http://localhost:5000/predict -H "Content-Type: application/json" -d "{\"features\":[5.1,3.5,1.4,0.2]}"
+
+u will get prediction 0 meaning setosa
+
+5th prog
+#vs code, create a file named dockerfile, 
+FROM python:3.9-slim 
+WORKDIR /app 
+COPY requirements.txt . 
+RUN pip install -r requirements.txt 
+COPY . . 
+CMD ["python", "predict_api.py"] 
+##OPEN DOCKER TERMINAL RTHER U TYPE THESE Build and run
+IN THE ORIGINAL DOCKER TERMINAL DO THESE 2
+docker build -t iris-api . 
+docker run -p 5000:5000 iris-api 
+
+#IN ANOTHER TERMINAL DO THESE BELOW
+DOCKER PS
+DOCKER LOGS<CONTAINERID> 
+Invoke-RestMethod -Uri http://localhost:5000/predict -Method POST -Headers @{ "Content-Type" = "application/json" } -Body '{ "features": [5.1, 3.5, 1.4, 0.2] }'
+OUTPUT PREDICTION 0
+
+6th prog
+#create file app.py
+pip install streamlit
+import streamlit as st 
+from sklearn.datasets import load_iris 
+from sklearn.linear_model import LogisticRegression 
+import numpy as np 
+iris = load_iris() 
+X, y = iris.data, iris.target 
+model = LogisticRegression(max_iter=200).fit(X, y) 
+st.title("Iris Prediction") 
+inputs = [st.slider(label, min_value=val[0], max_value=val[1], value=val[2]) for label, 
+val in zip( 
+    ['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width'], [(4.0, 8.0, 5.1), (2.0, 4.5, 3.5), (1.0, 7.0, 1.4), (0.1, 2.5, 0.2)])] 
+if st.button('Predict'): 
+     result = model.predict([inputs])[0] 
+     st.success(f"Prediction: {iris.target_names[result]}")
+
+streamlit run app.py
+
+
+7th prog
+
+
+8th prog
+#create a locustfile.py
+pip install locust
+#run the below code in it
+from locust import HttpUser, task , between#between was added for it to work
+class MLTest(HttpUser):
+     wait_time = between(1, 3) #this line to define class and give a wait time
+     @task 
+     def predict(self): 
+         self.client.post("/predict", json={"features": [5.1, 3.5, 1.4, 0.2]}) 
+# Run test in cmd
+locust -f locustfile.py --host=http://localhost:5000
+
+9th prog
+Q9: Bias Check & Mitigation in UCI Adult Dataset 
+**Question:** Check for bias in predictions from a model trained on UCI Adult dataset. 
+Mitigate it and retrain. 
+● **Prerequisites:** 
+● UCI Adult dataset 
+● scikit-learn, pandas installed 
+● **Solution Guide:** 
+● # Load dataset and check sex-based accuracy 
+● # Apply reweighting or oversampling to balance classes 
+● # Retrain and compare fairness metrics
+
+10th prog
+#CREATE .GITHUB FOLDER UNDER THAT CREATE  workflows
+#create file train.yml
+
+name: Train ML Model
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run training
+        run: python train_model.py
+
+      - name: Print success message
+        run: echo "✅ Training pipeline completed successfully!"
+
+in bash
+git add .
+git commit -m "Add GitHub Action to run training" 
+git push origin main
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
